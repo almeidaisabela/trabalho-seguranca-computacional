@@ -1,0 +1,36 @@
+{
+    "eleicao_id": "eleicao-2026-01",
+    "titulo": "Eleição de teste",
+    "candidatos": [
+        {
+            "id": 0,
+            "nome": "Candidato A"
+        },
+        {
+            "id": 1,
+            "nome": "Candidato B"
+        }
+    ],
+    "grupo": {
+        "nome": "TOY-MODP-23",
+        "p": "17",
+        "q": "b",
+        "g": "2"
+    },
+    "hash": "SHA-256",
+    "autoridades": [
+        {
+            "id": "A1",
+            "h_i": "8"
+        },
+        {
+            "id": "A2",
+            "h_i": "9"
+        },
+        {
+            "id": "A3",
+            "h_i": "d"
+        }
+    ],
+    "h": "10"
+}

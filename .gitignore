@@ -1,0 +1,23 @@
+# Ambiente virtual
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Chaves privadas e dados sigilosos (nunca versionar nem publicar)
+dados_privados/*
+!dados_privados/.gitkeep
+
+# Dados gerados em execução (cada um gera os seus)
+dados_publicos/*
+!dados_publicos/.gitkeep
+
+# Editores e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,15 @@
+{
+    "eleicao_id": "eleicao-2026-01",
+    "eleitor_id": "eleitor1",
+    "cifras": [
+        {
+            "c1": "4",
+            "c2": "6"
+        },
+        {
+            "c1": "12",
+            "c2": "4"
+        }
+    ],
+    "assinatura_eleitor": "960f96c5b55c96c9f925488b013c189e0fff38c2f5ea2779232101c256a1aef9c4979bb8bb827ce8ae727c92b9713d02cc98d3dc8b690782f51ea8116a42723be1bba9f5c3c914245eebf0df3604634422bd5f35d3efa81c43cdfa88c3db1c17a72bc59e56817e11fa84159f44c3caca74efc26459cd19e962a9cd92476b219418b793e94869a8afd7b588eb27f6bd39f13b1d4dd30df641324f69b9c24f02c67959042a28dbc946e363e851b3e1230226ba6aadfcd13f7f9d7c8c5f4e5f30e4d42ba33dff5eecb7549c3058b563cb6a2b65e085a9987f1bfdc30cd888bf70c20ecf70f13ac844f9af219f3f6371b0ecaccddc13f9e4222b78210481338d9bb7"
+}

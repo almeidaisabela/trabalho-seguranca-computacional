@@ -1,0 +1,66 @@
+{
+    "eleicao_id": "eleicao-2026-01",
+    "registros": [
+        {
+            "indice": 0,
+            "tipo": "cedula",
+            "eleitor_id": "eleitor1",
+            "cifras": [
+                {
+                    "c1": "4",
+                    "c2": "6"
+                },
+                {
+                    "c1": "12",
+                    "c2": "4"
+                }
+            ],
+            "assinatura_eleitor": "960f96c5b55c96c9f925488b013c189e0fff38c2f5ea2779232101c256a1aef9c4979bb8bb827ce8ae727c92b9713d02cc98d3dc8b690782f51ea8116a42723be1bba9f5c3c914245eebf0df3604634422bd5f35d3efa81c43cdfa88c3db1c17a72bc59e56817e11fa84159f44c3caca74efc26459cd19e962a9cd92476b219418b793e94869a8afd7b588eb27f6bd39f13b1d4dd30df641324f69b9c24f02c67959042a28dbc946e363e851b3e1230226ba6aadfcd13f7f9d7c8c5f4e5f30e4d42ba33dff5eecb7549c3058b563cb6a2b65e085a9987f1bfdc30cd888bf70c20ecf70f13ac844f9af219f3f6371b0ecaccddc13f9e4222b78210481338d9bb7",
+            "hash_anterior": "e15d981858488f34d8da2c6b480ba43bbecdb80240af37446ef4b844184dfe8d",
+            "hash": "8fd46b5e510a76964b9eefd6068cf01469ada4cb3696cebfcd1e719f9d0b1db5"
+        },
+        {
+            "indice": 1,
+            "tipo": "cedula",
+            "eleitor_id": "eleitor2",
+            "cifras": [
+                {
+                    "c1": "6",
+                    "c2": "8"
+                },
+                {
+                    "c1": "6",
+                    "c2": "10"
+                }
+            ],
+            "assinatura_eleitor": "24ecfb0ac126db80914c75af31555e4ab34d986793783aedc4f70e8dc971ab604977df6ba65c2b9e47b140e4fa09be8e4763b9647c01c535a71a4f3ba1906a105322b551bbe7a9cfa6a364ec945bc84b43d13ec4402360314bb0f71e5f99f70404b95d11ad9fbf3331cefa3dc7b98001bb22111776041dd2205283eefa9305f97228ead7265efaede598c62f43e70b9173b9fbff69e1345369c79f261ce9832fa86b402e0768f2f6fcaea64723cdb7ee9c9b22274694a1647dfbea58ffbb911af030a3b2f491407065f021b0808e0e4b4ffaffad6ee012db4e94ce98d050d0b3e2d6beb80960ab65b00c3f6b936136ddc82ad96c4d96ff39d394ffd3c3c85d5d",
+            "hash_anterior": "8fd46b5e510a76964b9eefd6068cf01469ada4cb3696cebfcd1e719f9d0b1db5",
+            "hash": "874fd28936601588b987f8f3329aa5d0577d6e7fea167cb52e58f51593416daa"
+        },
+        {
+            "indice": 2,
+            "tipo": "cedula",
+            "eleitor_id": "eleitor3",
+            "cifras": [
+                {
+                    "c1": "4",
+                    "c2": "6"
+                },
+                {
+                    "c1": "10",
+                    "c2": "9"
+                }
+            ],
+            "assinatura_eleitor": "762f133e118430a1fdeeafeda7222027464c1ed6494f3b7998a76834de1d400ddc34b266367688ab6a5113bd97b4df0b2faac323b84b45619310fef68d374fd1e509f96dc003d9f416ab585b9149b745e3af3f9675b18635553ad6aad891837825f1af3cb5c32d4678043f8456002c98ed36bf9c73ab3bf886d77a4a0b54152c4434129a4f01bad96b47bd2d0017810a474b974dee169fb26cf12ecad49e112dfab3c6b993c8e92672af9531a0c3170d3ee13ba792e79bfc042efda36c6f3b555677f39f472eba816cb93563666078ee1080188158239b66d95434c54d7a519eea9e9544eba8faf1f7eb4850fc9e74b810a2186b9d9a830694efc7c5c3895d67",
+            "hash_anterior": "874fd28936601588b987f8f3329aa5d0577d6e7fea167cb52e58f51593416daa",
+            "hash": "d25fa29307f227289960400121c96a9c9b93bdd1f28d34a266e6e0a264996872"
+        },
+        {
+            "indice": 3,
+            "tipo": "encerramento",
+            "assinatura_servidor": "0d4c2f802a6997437e4fcca8716c12bd681b68b9eef2a47a0c55376ed1d078bd24f0501f97e92788d6f819932d51f42b0f98a558d554f0652b3566c12c1671d9c0152b47d96b9513cb8c6597cebf27fdca78457eb1038f2540c569dca9cb623d561f774584eff4d253ddddc5eff65084913fc0757b0e90ed487185697dc73b849d01fdcd7673481add1774b3fcc0835a763f6bda664be2dac65efb2f500bc4963835ea4b9a67766f06cb72c6745a3cec7a098273a1e082be47301c3cadb450e589f2fc6333858e0474a1af13c7bdc253ff9411d211f07d9f9c40b566cb90475cc8f00cb65394b6f019e0892b49ed217522bb1a12172a549f520dd01fc9b2e20d",
+            "hash_anterior": "d25fa29307f227289960400121c96a9c9b93bdd1f28d34a266e6e0a264996872",
+            "hash": "b4fd3b9c9d54ac8d5251c3d81c60fc5dc357e6e6446b5dcb6e03f6e6e49ca77f"
+        }
+    ]
+}

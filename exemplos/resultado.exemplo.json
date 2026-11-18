@@ -1,0 +1,49 @@
+{
+    "eleicao_id": "eleicao-2026-01",
+    "num_cedulas": 3,
+    "produtos": [
+        {
+            "candidato": 0,
+            "C1": "4",
+            "C2": "c"
+        },
+        {
+            "candidato": 1,
+            "C1": "3",
+            "C2": "1"
+        }
+    ],
+    "parciais": [
+        {
+            "autoridade_id": "A1",
+            "D": [
+                "12",
+                "4"
+            ]
+        },
+        {
+            "autoridade_id": "A2",
+            "D": [
+                "c",
+                "d"
+            ]
+        },
+        {
+            "autoridade_id": "A3",
+            "D": [
+                "8",
+                "2"
+            ]
+        }
+    ],
+    "totais": [
+        {
+            "candidato": 0,
+            "votos": 2
+        },
+        {
+            "candidato": 1,
+            "votos": 1
+        }
+    ]
+}
