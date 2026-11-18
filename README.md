@@ -54,6 +54,38 @@ demo/               scripts da demonstração
 relatorio/          relatório técnico
 ```
 
+## Fluxo de contribuição
+
+Para manter a organização e a integridade do projeto, todas as alterações devem ser realizadas em branches próprias. Não são permitidos commits ou pushes diretamente na branch `main`.
+
+O fluxo de trabalho deve seguir as seguintes etapas:
+
+1. Atualizar a branch principal:
+   ```bash
+   git checkout main
+   git pull origin main
+
+2. Criar uma nova branch:
+    ```bash
+    git checkout -b tipo/nome-da-alteracao
+
+3. Realizar as alterações e criar os commits:
+    ```bash
+    git add .
+    git commit -m "tipo(escopo): descrição"
+
+4. Enviar a branch para o GitHub:
+    ```bash
+    git push -u origin tipo/nome-da-alteracao
+
+5. Abrir um Pull Request: 
+    ```bash
+    Criar um Pull Request direcionado à branch main para incorporar as alterações realizadas.
+
+6. Realizar o merge: 
+    ```bash
+    Após abrir o Pull Request, realizar o merge para incorporar as alterações à branch main.
+
 ## Execução
 
 Todos os comandos são executados na raiz do projeto, com o venv ativo.

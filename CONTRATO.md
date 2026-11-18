@@ -429,3 +429,4 @@ python main.py auditar                      auditor independente
 - Cada integrante mantém testes do próprio módulo em `testes/`.
 - Exemplos de JSON de cada arquivo da seção 3 ficam em `exemplos/` (com sufixo `.exemplo.json`).
 - Ninguém altera um formato deste contrato sem avisar o grupo.
+- Fluxo de branches: É obrigatório criar uma branch própria para cada nova funcionalidade, correção ou alteração. Não é permitido realizar commits ou enviar alterações diretamente para a branch `main`. Toda contribuição deverá ser enviada por meio de um Pull Request para revisão e posterior mesclagem na `main`.
