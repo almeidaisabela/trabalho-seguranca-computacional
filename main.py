@@ -49,7 +49,7 @@ def cmd_cadastrar(args):
 
 def cmd_abrir(_args):
     servidor.abrir()
-    print("Votação ABERTA. Cadastro de eleitores congelado no quadro.")
+    print("Votação ABERTA. Novos cadastros não são mais aceitos.")
 
 
 def cmd_votar(args):

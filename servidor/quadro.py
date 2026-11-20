@@ -12,9 +12,9 @@ Se alguém alterar, remover, reordenar ou inserir um registro no meio, o hash
 daquele registro muda e deixa de bater com o `hash_anterior` do seguinte.
 
 Tipos de registro:
-    abertura      -> hash da lista de eleitores (congela o cadastro), assinado pelo servidor
     cedula        -> eleitor_id, cifras e assinatura do eleitor
-    encerramento  -> marca o fim da votação, assinado pelo servidor
+    encerramento  -> último registro: marca o fim da votação, assinado pelo servidor.
+                     Qualquer cédula acrescentada depois dele é detectada.
 
 Não há data/hora nos registros: o momento do voto não fica registrado.
 """
@@ -38,13 +38,10 @@ def hash_registro(registro: dict) -> str:
     return sha256_hex(canonico(sem_hash))
 
 
-def dados_assinados_servidor(eleicao_id: str, registro: dict) -> bytes:
-    """Bytes que o servidor assina nos registros de abertura e encerramento."""
-    obj = {"eleicao_id": eleicao_id, "tipo": registro["tipo"],
-           "hash_anterior": registro["hash_anterior"]}
-    if registro["tipo"] == "abertura":
-        obj["hash_eleitores"] = registro["hash_eleitores"]
-    return canonico(obj)
+def dados_assinados_encerramento(eleicao_id: str, hash_anterior: str) -> bytes:
+    """Bytes que o servidor assina no registro de encerramento."""
+    return canonico({"eleicao_id": eleicao_id, "tipo": "encerramento",
+                     "hash_anterior": hash_anterior})
 
 
 def criar_vazio(eleicao_id: str) -> None:
@@ -95,6 +92,7 @@ def encerramento_valido(config: dict, registros: List[dict], servidor_pub_pem: s
     if not registros or registros[-1].get("tipo") != "encerramento":
         return False
     ultimo = registros[-1]
-    return assinatura.verificar(servidor_pub_pem,
-                                dados_assinados_servidor(config["eleicao_id"], ultimo),
-                                ultimo["assinatura_servidor"])
+    return assinatura.verificar(
+        servidor_pub_pem,
+        dados_assinados_encerramento(config["eleicao_id"], ultimo["hash_anterior"]),
+        ultimo["assinatura_servidor"])

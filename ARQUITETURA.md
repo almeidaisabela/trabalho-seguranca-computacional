@@ -87,7 +87,7 @@ Notação: `p` primo de 2048 bits, `q = (p-1)/2`, `g = 2`. Tudo é calculado mod
 2. O servidor (`servidor.configurar`):
    - confere que cada `h_i` está no grupo e que cada prova é válida;
    - calcula a chave conjunta `h = h_1 · h_2 · h_3 = g^(x_1+x_2+x_3)`;
-   - gera seu par RSA (para assinar recibos, abertura e encerramento);
+   - gera seu par RSA (para assinar os recibos e o encerramento);
    - publica `config.json`, `servidor_pub.json`, `eleitores.json` vazio e o quadro vazio.
 
 Ninguém calcula `x = x_1 + x_2 + x_3`. Para decifrar é preciso a ajuda das três.
@@ -104,10 +104,8 @@ O eleitor gera seu par RSA-2048 (`cliente.cadastrar`). A chave privada fica em
 
 ### Etapa 3 · Abertura (`python main.py abrir`)
 
-O servidor muda o estado para `aberta` e grava no quadro o registro de
-**abertura**, com o SHA-256 da lista de eleitores, assinado pelo servidor.
-A partir daí o cadastro fica congelado: se alguém incluir um eleitor depois,
-o hash não bate e o auditor acusa.
+O servidor muda o estado para `aberta`. A partir daí ele passa a aceitar
+cédulas e deixa de aceitar cadastros: só vota quem foi cadastrado antes.
 
 ### Etapa 4 · Votação (`python main.py votar eleitor1 0`)
 
@@ -150,6 +148,10 @@ assinado. Nada entra depois dele.
 1. Cada autoridade (`autoridade.decifracao_parcial`), sozinha:
    - confere a cadeia do quadro e a assinatura do encerramento. Se a votação
      não acabou, **recusa** (ninguém vê resultado parcial);
+   - apura **um único quadro** na eleição: anota o hash do quadro apurado e
+     recusa qualquer outro. Sem isso, o administrador (que tem a chave do
+     servidor) poderia forjar um quadro só com a cédula de uma pessoa, assinar
+     um encerramento falso e pedir a apuração: o "total" seria o voto dela;
    - calcula ela mesma o produto de todas as cédulas, para cada candidato `j`:
      `C1_j = ∏ c1`, `C2_j = ∏ c2`. Isso é uma cifra de `total_j`, porque os
      expoentes somam: `(g^R, g^total · h^R)`;
@@ -173,7 +175,7 @@ O auditor lê apenas `dados_publicos/` e confere:
 
 1. grupo padrão, ≥ 2 candidatos, ≥ 3 autoridades, provas de Schnorr e `h = ∏ h_i`;
 2. cadeia de hashes completa, a partir do hash da `config`;
-3. abertura única no início (com o hash do cadastro) e encerramento único no fim, ambos assinados;
+3. encerramento único, no fim do quadro, assinado pelo servidor (nada entra depois);
 4. para cada cédula: eleitor cadastrado, primeira cédula do eleitor, assinatura válida e cifras no grupo;
 5. produto homomórfico recalculado igual ao publicado, todas as autoridades presentes,
    provas de Chaum-Pedersen válidas, `g^votos · ∏ D_i = C2` e soma dos votos = nº de cédulas.
@@ -188,7 +190,7 @@ Saída: **ELEIÇÃO VÁLIDA** ou **ELEIÇÃO ADULTERADA** com a lista de falhas.
 |---|---|---|
 | Sigilo do voto | ElGamal com chave conjunta: nenhuma entidade isolada tem `x`. Só o produto é decifrado. Sem timestamps, e `r` novo em cada cifra (a ordem não revela nada). | `crypto/elgamal.py`, `autoridades/` |
 | Integridade | Cadeia SHA-256 desde a `config` + assinaturas dos eleitores + encerramento assinado + recibos | `servidor/quadro.py`, `auditor/` |
-| Elegibilidade | Só chaves cadastradas antes da abertura; cadastro congelado no registro de abertura | `servidor.receber_cedula`, `servidor.abrir` |
+| Elegibilidade | Só chaves cadastradas antes da abertura; servidor e auditor conferem o cadastro | `servidor.registrar_eleitor`, `servidor.receber_cedula`, `auditor` |
 | Unicidade | Servidor recusa o segundo voto; o auditor confere que nenhum `eleitor_id` se repete | `servidor.receber_cedula`, `auditor` |
 | Justiça | Autoridades se recusam a decifrar antes do encerramento assinado | `autoridade.decifracao_parcial` |
 | Verificabilidade individual | Recibo assinado + conferência no quadro com a própria chave | `cliente.conferir_no_quadro` |
@@ -236,9 +238,12 @@ a coação nesse cenário.
   inteira** e refizer toda a cadeia, o encerramento e a apuração, o auditor
   sozinho não percebe. Quem detecta é o eleitor, no `verificar`: o recibo
   assinado pelo servidor é a prova de que a cédula foi aceita.
-- O administrador pode cadastrar eleitores falsos **antes** da abertura. A lista
-  é pública e congelada, mas a conferência de quem é eleitor real fica fora do sistema.
+- O administrador controla o cadastro: pode incluir eleitores falsos. A lista é
+  pública, mas conferir quem é eleitor de verdade fica fora do sistema.
 - Quem votou (não em quem) é público, porque o quadro mostra os `eleitor_id`.
+- Quadro falso apresentado às autoridades: mitigado (cada autoridade apura um
+  único quadro), mas se o ataque vier antes da apuração verdadeira, ele revela
+  um voto uma única vez. Ver `relatorio/MODELO_DE_AMEACAS.md`, seção 3.
 - Se todos votarem no mesmo candidato, o resultado revela o voto de todos. Isso
   vale para qualquer eleição.
 

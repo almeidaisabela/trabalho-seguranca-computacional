@@ -22,7 +22,7 @@ def test_verificacao_individual(eleicao_aberta):
     assert ok
 
     q = arquivos.ler_publico("quadro.json")
-    reg = q["registros"][1]
+    reg = q["registros"][0]
     reg["cifras"][0], reg["cifras"][1] = reg["cifras"][1], reg["cifras"][0]
     arquivos.salvar_publico("quadro.json", q)
     ok, _ = cliente.conferir_no_quadro("e1")
