@@ -14,8 +14,9 @@ Natalie Santos Tanoff - 241004588
 
 ## Requisitos
 
-- Python 3.11 ou superior
+- Python 3.9 ou superior (testado com 3.9.6)
 - Biblioteca `cryptography` (usada apenas para assinaturas RSA)
+- `pytest` (somente para os testes)
 
 Todo o restante (ElGamal, chave conjunta, apuração homomórfica, encadeamento
 por hash) é implementado com aritmética modular, `hashlib` e `secrets`.
@@ -38,21 +39,27 @@ pip install -r requirements.txt
 Se o PowerShell bloquear a ativação, execute antes:
 `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
 
-## Estrutura do projeto
+## Estrutura do projeto (arquitetura em camadas)
 
 ```
-main.py             CLI unificada
-crypto/             ElGamal exponencial, parâmetros do grupo, apuração homomórfica
-autoridades/        geração de chaves, chave conjunta, decifração parcial e conjunta
-eleitor/            cadastro, cliente do eleitor, assinatura, verificação do recibo
-servidor/           fluxo de votação, quadro público, recibos
-auditor/            auditor independente (lê somente dados_publicos/)
+main.py             CAMADA 4  apresentação: CLI unificada
+eleitor/            CAMADA 3  cliente do eleitor: cadastro, voto, recibo, verificação
+servidor/           CAMADA 3  servidor de votação e quadro público encadeado
+autoridades/        CAMADA 3  chaves das autoridades, decifração parcial e apuração
+armazenamento/      CAMADA 2  persistência: leitura e gravação dos JSON
+crypto/             CAMADA 1  grupo, hash canônico, ElGamal, provas, RSA
+auditor/            programa separado: usa só crypto/ e lê só dados_publicos/
 dados_publicos/     configuração, eleitores, quadro, resultado (tudo auditável)
 dados_privados/     chaves privadas (autoridades, eleitores, servidor)
-testes/             testes unitários
-demo/               scripts da demonstração
+testes/             um arquivo de testes por integrante
+demo/               roteiro e cenários da demonstração
+exemplos/           exemplos reais de cada JSON
 relatorio/          relatório técnico
 ```
+
+A explicação das camadas, a divisão entre as integrantes e o passo a passo de
+cada etapa estão em [`ARQUITETURA.md`](ARQUITETURA.md). Os formatos dos arquivos
+estão em [`CONTRATO.md`](CONTRATO.md).
 
 ## Fluxo de contribuição
 
@@ -94,51 +101,57 @@ Todos os comandos são executados na raiz do projeto, com o venv ativo.
 python main.py --help
 ```
 
-Fluxo completo de uma eleição (ajustar nomes e argumentos conforme a CLI final):
+Fluxo completo de uma eleição:
 
 ```bash
-# 1. Configuração: candidatos, parâmetros do grupo e autoridades
-python main.py config
-
-# 2. Cadastro dos eleitores (gera pares RSA e registra as chaves públicas)
-python main.py cadastrar
-
-# 3. Votação
-python main.py votar
-
-# 4. Encerramento da votação
+python main.py resetar                                       # apaga a eleição anterior
+python main.py config --candidatos Ana Bruno Carla --autoridades 3
+python main.py cadastrar eleitor1 eleitor2 eleitor3          # antes da abertura
+python main.py abrir
+python main.py votar eleitor1 0                              # candidato pelo número
+python main.py votar eleitor2 2
+python main.py votar eleitor3 0
+python main.py verificar eleitor1                            # confere o recibo no quadro
 python main.py encerrar
+python main.py apurar                                        # exige TODAS as autoridades
+python main.py auditar                                       # auditor independente
+```
 
-# 5. Apuração (exige a participação de TODAS as autoridades)
-python main.py apurar
+O auditor também roda como programa separado, apontando para qualquer pasta pública:
 
-# 6. Auditoria independente
-python main.py auditar
+```bash
+python -m auditor dados_publicos
 ```
 
 ## Demonstração
 
-Os scripts em `demo/` cobrem os cenários obrigatórios:
+Roteiro completo da apresentação (cobre os 4 itens obrigatórios, na ordem):
 
-| Cenário | Script |
-|---|---|
-| Eleição completa (3+ eleitores, 3+ autoridades) | `demo/demo_completa` |
-| Tentativa de voto duplicado (rejeitada) | `demo/tenta_voto_duplo` |
-| Adulteração de cédula no quadro e detecção pelo auditor | `demo/adultera_quadro` |
-| Apuração sem todas as autoridades (falha) | `demo/tenta_apurar_sem_autoridade` |
+```bash
+python demo/roteiro.py --pausar
+```
+
+`--pausar` espera um Enter entre as etapas. Os cenários também rodam separados:
+
+| Cenário | Comando | Pré-condição |
+|---|---|---|
+| Eleição completa (3 eleitores, 3 autoridades) | `python demo/demo_completa.py` | nenhuma |
+| Voto duplo e eleitor não cadastrado (rejeitados) | `python demo/tenta_voto_duplo.py` | votação aberta, eleitor1 já votou |
+| Apuração sem uma autoridade (falha) | `python demo/tenta_apurar_sem_autoridade.py A3` | votação encerrada |
+| Adulteração de cédula e detecção pelo auditor | `python demo/adultera_quadro.py [--recalcula]` | eleição apurada |
+| Desfazer a adulteração | `python demo/adultera_quadro.py --restaurar` | — |
 
 ## Testes
 
 ```bash
-python -m pytest testes/
+python -m pytest testes/ -v
 ```
-
-(Adicionar `pytest` ao `requirements.txt` se for usado.)
 
 ## Parâmetros criptográficos
 
-- Grupo: MODP de 2048 bits (RFC 3526, grupo 14), conferir com o `CONTRATO.md`
+- Grupo: MODP de 2048 bits (RFC 3526, grupo 14), `g = 2`, subgrupo de ordem `q = (p-1)/2`
 - Hash: SHA-256
-- Assinaturas: RSA (tamanho de chave: preencher)
+- Assinaturas: RSA de 2048 bits, PSS com SHA-256
+- Provas: Schnorr (chaves das autoridades) e Chaum-Pedersen (decifração parcial), com Fiat-Shamir
 
 Detalhes e justificativas estão no relatório técnico (`relatorio/`).
