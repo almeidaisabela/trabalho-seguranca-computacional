@@ -69,7 +69,6 @@ def apurar(participantes: List[str]) -> dict:
     resultado = {
         "eleicao_id": config["eleicao_id"],
         "num_cedulas": num_cedulas,
-        "hash_quadro": registros[-1]["hash"],   # liga o resultado ao quadro apurado
         "produtos": [{"candidato": j, "C1": int_para_hex(c1), "C2": int_para_hex(c2)}
                      for j, (c1, c2) in enumerate(produtos)],
         "parciais": parciais,

@@ -44,12 +44,10 @@ def _hash_registro(reg: dict) -> str:
     return sha256_hex(canonico({k: v for k, v in reg.items() if k != "hash"}))
 
 
-def _assinatura_servidor_ok(pub_pem, eleicao_id, reg) -> bool:
-    obj = {"eleicao_id": eleicao_id, "tipo": reg.get("tipo"),
-           "hash_anterior": reg.get("hash_anterior")}
-    if reg.get("tipo") == "abertura":
-        obj["hash_eleitores"] = reg.get("hash_eleitores")
-    return assinatura.verificar(pub_pem, canonico(obj), reg.get("assinatura_servidor", ""))
+def _encerramento_assinado(pub_pem, eleicao_id, reg) -> bool:
+    dados = canonico({"eleicao_id": eleicao_id, "tipo": "encerramento",
+                      "hash_anterior": reg.get("hash_anterior")})
+    return assinatura.verificar(pub_pem, dados, reg.get("assinatura_servidor", ""))
 
 
 # ---------------------------------------------------------------- verificações
@@ -87,19 +85,12 @@ def verificar_quadro(rel, config, eleitores, servidor_pub, registros) -> list:
     if cadeia_ok:
         rel.checar(True, f"{len(registros)} registros encadeados corretamente desde a config")
 
-    print("\n3. Abertura e encerramento")
+    print("\n3. Encerramento")
     tipos = [r.get("tipo") for r in registros]
-    abertura_ok = bool(registros) and tipos[0] == "abertura" and tipos.count("abertura") == 1
-    rel.checar(abertura_ok, "primeiro registro é a única abertura")
-    if abertura_ok:
-        rel.checar(registros[0]["hash_eleitores"] == sha256_hex(canonico(eleitores)),
-                   "cadastro de eleitores é o mesmo congelado na abertura")
-        rel.checar(_assinatura_servidor_ok(servidor_pub, config["eleicao_id"], registros[0]),
-                   "assinatura do servidor na abertura")
     enc_ok = bool(registros) and tipos[-1] == "encerramento" and tipos.count("encerramento") == 1
     rel.checar(enc_ok, "último registro é o único encerramento (nada entra depois)")
     if enc_ok:
-        rel.checar(_assinatura_servidor_ok(servidor_pub, config["eleicao_id"], registros[-1]),
+        rel.checar(_encerramento_assinado(servidor_pub, config["eleicao_id"], registros[-1]),
                    "assinatura do servidor no encerramento")
 
     print("\n4. Cédulas: elegibilidade, unicidade e assinaturas")
@@ -127,15 +118,13 @@ def verificar_quadro(rel, config, eleitores, servidor_pub, registros) -> list:
     return cedulas
 
 
-def verificar_resultado(rel, config, registros, cedulas, resultado) -> None:
+def verificar_resultado(rel, config, cedulas, resultado) -> None:
     print("\n5. Apuração homomórfica e decifração conjunta")
     if resultado is None:
         print("  (resultado.json ainda não publicado: apuração não verificada)")
         return
     n = len(config["candidatos"])
     rel.checar(resultado["num_cedulas"] == len(cedulas), "número de cédulas confere")
-    rel.checar(bool(registros) and resultado.get("hash_quadro") == registros[-1].get("hash"),
-               "resultado se refere a este quadro (hash do último registro)")
 
     # Recalcula o produto de todas as cédulas, candidato por candidato.
     produtos = [(1, 1)] * n
@@ -164,8 +153,8 @@ def verificar_resultado(rel, config, registros, cedulas, resultado) -> None:
             lado_esq = (lado_esq * hex_para_int(parcial["D"][j])) % params.P
         nome = config["candidatos"][j]["nome"]
         rel.checar(lado_esq == c2, f"{nome}: g^{votos} * prod(D_i) = C2 (total correto)")
-    rel.checar(soma == len(cedulas),
-               "soma dos votos = número de cédulas (sem cédula com mais de um voto)")
+    # Detecção parcial de eleitor que cifrou valor diferente de 0 ou 1 (pergunta (i)).
+    rel.checar(soma == len(cedulas), "soma dos votos = número de cédulas")
 
 
 def auditar(pasta=PASTA_PADRAO) -> bool:
@@ -185,7 +174,7 @@ def auditar(pasta=PASTA_PADRAO) -> bool:
     registros = quadro["registros"]
     cedulas = verificar_quadro(rel, config, eleitores,
                                servidor_pub["chave_publica_pem"], registros)
-    verificar_resultado(rel, config, registros, cedulas, _ler(pasta, "resultado.json"))
+    verificar_resultado(rel, config, cedulas, _ler(pasta, "resultado.json"))
 
     if rel.falhas:
         print(f"\n>>> ELEIÇÃO ADULTERADA ({len(rel.falhas)} falha(s)):")

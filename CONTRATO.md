@@ -5,11 +5,11 @@ grupo e atualizar este arquivo **antes** de alterar o código.
 
 Itens marcados com **[A DECIDIR]** ainda precisam de confirmação do grupo.
 
-> **Atualização (implementação em camadas):** foram acrescentados o registro de
-> `abertura` no quadro, as provas de Schnorr (`config.autoridades[].prova`) e de
-> Chaum-Pedersen (`resultado.parciais[].provas`), o campo `resultado.hash_quadro`
-> e a camada de persistência `armazenamento/`. Os itens [A DECIDIR] da seção 8
-> foram decididos. Detalhes em `ARQUITETURA.md`.
+> **Atualização (implementação em camadas):** foram acrescentadas as provas de
+> Schnorr (`config.autoridades[].prova`) e de Chaum-Pedersen
+> (`resultado.parciais[].provas`), o campo `quadro_decifrado` no arquivo privado
+> de cada autoridade e a camada de persistência `armazenamento/`. Os itens
+> [A DECIDIR] da seção 8 foram decididos. Detalhes em `ARQUITETURA.md`.
 
 ---
 
@@ -160,14 +160,6 @@ Lista de registros, somente de acréscimo, encadeados por hash.
   "registros": [
     {
       "indice": 0,
-      "tipo": "abertura",
-      "hash_eleitores": "<hex: sha256_hex(canonico(eleitores))>",
-      "assinatura_servidor": "<hex>",
-      "hash_anterior": "<hex>",
-      "hash": "<hex>"
-    },
-    {
-      "indice": 1,
       "tipo": "cedula",
       "eleitor_id": "eleitor1",
       "cifras": [
@@ -192,11 +184,6 @@ hash do registro i = sha256_hex(canonico(registro sem o campo "hash"))
 ```
 
 O campo `hash` não entra no cálculo do próprio hash; todos os outros campos entram.
-
-**Registro de abertura:** sempre o registro 0. Guarda o hash da lista de eleitores
-(congela o cadastro) e a assinatura do servidor sobre
-`canonico({"eleicao_id", "tipo": "abertura", "hash_eleitores", "hash_anterior"})`.
-As cédulas começam no índice 1.
 
 **Sigilo pela ordem e pelo momento:** os registros **não têm timestamp**. A ordem de
 chegada é pública, mas como as cédulas são cifradas, ela não revela o voto.
@@ -225,7 +212,6 @@ aparecer antes disso (propriedade de justiça).
 {
   "eleicao_id": "eleicao-2026-01",
   "num_cedulas": 3,
-  "hash_quadro": "<hex: hash do último registro do quadro apurado>",
   "produtos": [
     {"candidato": 0, "C1": "<hex>", "C2": "<hex>"},
     {"candidato": 1, "C1": "<hex>", "C2": "<hex>"}
@@ -257,7 +243,7 @@ Nunca versionados, nunca lidos pelo auditor.
 ```
 dados_privados/
 ├── autoridades/
-│   ├── A1.json          {"id": "A1", "x_i": "<hex>"}
+│   ├── A1.json          {"id": "A1", "x_i": "<hex>", "quadro_decifrado": "<hex, após a apuração>"}
 │   ├── A2.json
 │   └── A3.json
 ├── eleitores/
@@ -349,7 +335,7 @@ Lê apenas `dados_publicos/` e verifica:
 3. Cada assinatura de eleitor, com a chave de `eleitores.json`.
 4. Todo `eleitor_id` do quadro está cadastrado (elegibilidade).
 5. Nenhum `eleitor_id` aparece duas vezes (unicidade).
-6. Abertura única no início (hash do cadastro confere) e encerramento único no fim, ambos assinados.
+6. Registro de encerramento presente, assinado pelo servidor, e nenhuma cédula depois dele.
 7. Recalcula o produto homomórfico e compara com `produtos` de `resultado.json`.
 8. Confere as provas de Chaum-Pedersen e `g^votos * ∏ D_i[j] == C2_j` para cada candidato;
    confere que a soma dos votos é igual ao número de cédulas.
@@ -368,7 +354,7 @@ Lê apenas `dados_publicos/` e verifica:
 | Sigilo por ordem/momento | Sem timestamps, e cédulas cifradas com `r` novo |
 | Prova de decifração parcial correta | **Decidido:** Chaum-Pedersen implementada (e Schnorr para as chaves h_i) |
 | Auditor importa de `crypto/`? | **Decidido:** importa só a camada 1 (`crypto/`). Hash de registro e produto homomórfico são recalculados no próprio auditor |
-| Autoridade decifra o quê? | **Decidido:** cada autoridade lê o quadro, exige o encerramento assinado e calcula ela mesma o produto. Nunca decifra uma cédula individual |
+| Autoridade decifra o quê? | **Decidido:** cada autoridade lê o quadro, exige o encerramento assinado e calcula ela mesma o produto. Nunca decifra uma cédula individual e decifra **um único quadro** (guarda `quadro_decifrado`) |
 
 ---
 

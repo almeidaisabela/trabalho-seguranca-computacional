@@ -50,8 +50,9 @@ def test_cadeia_detecta_alteracao_remocao_e_reordenacao(eleicao_encerrada):
     assert quadro.verificar_cadeia(config, original) == []
 
     alterado = [dict(r) for r in original]
-    alterado[1]["eleitor_id"] = "e9"
+    alterado[0]["eleitor_id"] = "e9"
     assert quadro.verificar_cadeia(config, alterado)
 
-    assert quadro.verificar_cadeia(config, original[:2] + original[3:])          # remoção
-    assert quadro.verificar_cadeia(config, [original[0], original[2], original[1]] + original[3:])
+    assert quadro.verificar_cadeia(config, original[1:])                          # remoção
+    assert quadro.verificar_cadeia(config, [original[1], original[0]] + original[2:])  # reordenação
+

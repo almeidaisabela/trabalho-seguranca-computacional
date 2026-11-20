@@ -26,11 +26,7 @@ def gerar_par_rsa():
         serialization.PrivateFormat.PKCS8,
         serialization.NoEncryption(),
     ).decode()
-    pub_pem = privada.public_key().public_bytes(
-        serialization.Encoding.PEM,
-        serialization.PublicFormat.SubjectPublicKeyInfo,
-    ).decode()
-    return priv_pem, pub_pem
+    return priv_pem, chave_publica_de(priv_pem)
 
 
 def chave_publica_de(chave_privada_pem: str) -> str:

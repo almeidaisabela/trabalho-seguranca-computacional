@@ -32,9 +32,6 @@ if __name__ == "__main__":
     titulo("ATAQUE: administrador troca as cifras da cédula do eleitor2")   # item 4
     adultera_quadro.adulterar(recalcular=False)
     executar("auditar")
-    titulo("Mesmo recalculando todos os hashes, a fraude é detectada")
-    adultera_quadro.restaurar()
-    adultera_quadro.adulterar(recalcular=True)
-    executar("auditar")
+    titulo("O próprio eleitor2 também percebe a adulteração")
     executar("verificar", "eleitor2")
     adultera_quadro.restaurar()

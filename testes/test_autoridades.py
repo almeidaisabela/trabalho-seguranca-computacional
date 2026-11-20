@@ -46,3 +46,44 @@ def test_decifracao_parcial_falsa_e_rejeitada(eleicao_encerrada):
     parciais[1]["D"][0] = int_para_hex((d * params.G) % params.P)
     with pytest.raises(ErroApuracao, match="falsa"):
         apuracao.decifrar_resultado(config, produtos, parciais, 3)
+
+
+def _forjar_quadro_com_uma_cedula():
+    """Ataque do administrador: quadro só com a 1ª cédula e encerramento reassinado."""
+    from crypto import assinatura
+    from crypto.serial import canonico, sha256_hex
+    from servidor import quadro
+    config = arquivos.ler_publico("config.json")
+    q = quadro.carregar()
+    regs = q["registros"][:1]                         # só a 1ª cédula
+    anterior = sha256_hex(canonico(config))
+    for i, r in enumerate(regs):
+        r["indice"], r["hash_anterior"] = i, anterior
+        r["hash"] = quadro.hash_registro(r)
+        anterior = r["hash"]
+    chave = arquivos.ler_texto_privado("servidor/servidor_priv.pem")
+    enc = {"indice": 1, "tipo": "encerramento", "hash_anterior": anterior}
+    enc["assinatura_servidor"] = assinatura.assinar(
+        chave, quadro.dados_assinados_encerramento(config["eleicao_id"], anterior))
+    enc["hash"] = quadro.hash_registro(enc)
+    q["registros"] = regs + [enc]
+    arquivos.salvar_publico("quadro.json", q)
+
+
+def test_autoridade_decifra_um_unico_quadro(eleicao_encerrada):
+    autoridade.decifracao_parcial("A1")
+    autoridade.decifracao_parcial("A1")               # o mesmo quadro de novo: permitido
+    _forjar_quadro_com_uma_cedula()
+    with pytest.raises(ErroApuracao, match="já apurei outro quadro"):
+        autoridade.decifracao_parcial("A1")
+
+
+def test_quadro_falso_bloqueia_a_apuracao_verdadeira(eleicao_encerrada):
+    """Se o ataque acontecer primeiro, a apuração verdadeira passa a falhar (fica visível)."""
+    from servidor import quadro
+    verdadeiro = quadro.carregar()
+    _forjar_quadro_com_uma_cedula()
+    apuracao.apurar(["A1", "A2", "A3"])               # o ataque funciona uma vez
+    arquivos.salvar_publico("quadro.json", verdadeiro)
+    with pytest.raises(ErroApuracao, match="já apurei outro quadro"):
+        apuracao.apurar(["A1", "A2", "A3"])

@@ -27,7 +27,7 @@ def test_eleicao_valida(eleicao_encerrada):
 def test_detecta_cifra_alterada(eleicao_encerrada):
     pasta = _apurada(eleicao_encerrada)
     q = arquivos.ler_publico("quadro.json")
-    c = q["registros"][2]["cifras"]
+    c = q["registros"][1]["cifras"]
     c[0], c[1] = c[1], c[0]
     arquivos.salvar_publico("quadro.json", q)
     assert not auditar(pasta)
@@ -37,7 +37,7 @@ def test_detecta_remocao_com_hashes_recalculados(eleicao_encerrada):
     pasta = _apurada(eleicao_encerrada)
     q = arquivos.ler_publico("quadro.json")
     config = arquivos.ler_publico("config.json")
-    del q["registros"][1]
+    del q["registros"][0]
     _rehash(q["registros"], config)
     arquivos.salvar_publico("quadro.json", q)
     assert not auditar(pasta)
@@ -47,7 +47,7 @@ def test_detecta_cedula_duplicada_inserida(eleicao_encerrada):
     pasta = _apurada(eleicao_encerrada)
     q = arquivos.ler_publico("quadro.json")
     config = arquivos.ler_publico("config.json")
-    q["registros"].insert(2, copy.deepcopy(q["registros"][1]))   # mesmo eleitor 2x
+    q["registros"].insert(1, copy.deepcopy(q["registros"][0]))   # mesmo eleitor 2x
     _rehash(q["registros"], config)
     arquivos.salvar_publico("quadro.json", q)
     assert not auditar(pasta)
@@ -60,10 +60,3 @@ def test_detecta_resultado_alterado(eleicao_encerrada):
     arquivos.salvar_publico("resultado.json", r)
     assert not auditar(pasta)
 
-
-def test_detecta_eleitor_inserido_no_cadastro(eleicao_encerrada):
-    pasta = _apurada(eleicao_encerrada)
-    eleitores = arquivos.ler_publico("eleitores.json")
-    eleitores.append({"id": "fantasma", "chave_publica_pem": eleitores[0]["chave_publica_pem"]})
-    arquivos.salvar_publico("eleitores.json", eleitores)
-    assert not auditar(pasta)

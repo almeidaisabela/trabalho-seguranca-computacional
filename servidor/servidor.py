@@ -21,7 +21,7 @@ from typing import List
 
 from armazenamento import arquivos
 from crypto import assinatura, params, provas
-from crypto.serial import canonico, hex_para_int, int_para_hex, sha256_hex
+from crypto.serial import canonico, hex_para_int, int_para_hex
 from servidor import quadro
 
 ARQ_ESTADO = "servidor/estado.json"
@@ -92,7 +92,7 @@ def configurar(eleicao_id: str, titulo: str, candidatos: List[str],
         "h": int_para_hex(h),
     }
 
-    # Par de chaves RSA do servidor (assina recibos, abertura e encerramento).
+    # Par de chaves RSA do servidor (assina os recibos e o encerramento).
     priv_pem, pub_pem = assinatura.gerar_par_rsa()
     arquivos.salvar_texto_privado(ARQ_CHAVE, priv_pem)
     arquivos.salvar_publico("servidor_pub.json", {"chave_publica_pem": pub_pem})
@@ -120,19 +120,10 @@ def registrar_eleitor(eleitor_id: str, chave_publica_pem: str) -> None:
 
 # ------------------------------------------------------------------- etapa 3
 def abrir() -> None:
-    """Abre a votação e grava no quadro o hash do cadastro (que fica congelado)."""
-    eleitores = arquivos.ler_publico("eleitores.json")
-    if not eleitores:
+    """Abre a votação. A partir daqui o cadastro de eleitores não aceita ninguém."""
+    if not arquivos.ler_publico("eleitores.json"):
         raise ErroVotacao("nenhum eleitor cadastrado")
     _mudar_estado("configurada", "aberta")
-
-    config = arquivos.ler_publico("config.json")
-    hash_eleitores = sha256_hex(canonico(eleitores))
-    assin = _assinar(quadro.dados_assinados_servidor(config["eleicao_id"], {
-        "tipo": "abertura", "hash_eleitores": hash_eleitores,
-        "hash_anterior": quadro.ultimo_hash()}))
-    quadro.acrescentar({"tipo": "abertura", "hash_eleitores": hash_eleitores,
-                        "assinatura_servidor": assin})
 
 
 # ------------------------------------------------------------------- etapa 4
@@ -164,6 +155,7 @@ def receber_cedula(cedula: dict) -> dict:
         raise ErroVotacao(f"eleitor {eleitor_id} já votou")
 
     # Regra 5: formato -> uma cifra por candidato, todas dentro do grupo.
+    # (Uma cifra inválida, como c1 = 0, zeraria o produto e travaria a apuração.)
     if len(cedula["cifras"]) != len(config["candidatos"]):
         raise ErroVotacao("número de cifras diferente do número de candidatos")
     for cifra in cedula["cifras"]:
@@ -189,8 +181,8 @@ def encerrar() -> None:
     """Fecha a votação e grava o registro de encerramento assinado."""
     _mudar_estado("aberta", "encerrada")
     config = arquivos.ler_publico("config.json")
-    assin = _assinar(quadro.dados_assinados_servidor(config["eleicao_id"], {
-        "tipo": "encerramento", "hash_anterior": quadro.ultimo_hash()}))
+    assin = _assinar(quadro.dados_assinados_encerramento(config["eleicao_id"],
+                                                         quadro.ultimo_hash()))
     quadro.acrescentar({"tipo": "encerramento", "assinatura_servidor": assin})
 
 
