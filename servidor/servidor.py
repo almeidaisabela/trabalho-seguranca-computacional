@@ -42,6 +42,10 @@ def resetar() -> None:
     """Apaga a eleição anterior (só para testes e demonstração)."""
     arquivos.limpar_dados()
 
+def garantir_sem_eleicao() -> None:
+    """Recusa se já existe eleição configurada (evita sobrescrever chaves)."""
+    if arquivos.existe_publico("config.json"):
+        raise ErroVotacao("já existe uma eleição configurada; rode 'resetar' antes")
 
 def estado() -> str:
     if not arquivos.existe_privado(ARQ_ESTADO):
