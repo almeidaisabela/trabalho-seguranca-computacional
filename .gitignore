@@ -21,3 +21,6 @@ dados_publicos/*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Chaves entregues às pessoas na demonstração (demo/interacao.py)
+chaveiro/

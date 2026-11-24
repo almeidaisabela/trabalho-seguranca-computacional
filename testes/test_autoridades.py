@@ -87,3 +87,15 @@ def test_quadro_falso_bloqueia_a_apuracao_verdadeira(eleicao_encerrada):
     arquivos.salvar_publico("quadro.json", verdadeiro)
     with pytest.raises(ErroApuracao, match="já apurei outro quadro"):
         apuracao.apurar(["A1", "A2", "A3"])
+
+
+def test_autoridade_pode_entregar_a_propria_chave(eleicao_encerrada):
+    x_maria = hex_para_int(arquivos.ler_privado("autoridades/A1.json")["x_i"])
+    parcial = autoridade.decifracao_parcial("A1", x_maria)     # chave entregue por ela
+    assert parcial["autoridade_id"] == "A1"
+
+
+def test_chave_de_outra_autoridade_e_recusada(eleicao_encerrada):
+    x_outra = hex_para_int(arquivos.ler_privado("autoridades/A2.json")["x_i"])
+    with pytest.raises(ErroApuracao, match="essa chave não é a de A1"):
+        autoridade.decifracao_parcial("A1", x_outra)

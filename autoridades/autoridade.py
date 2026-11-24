@@ -18,7 +18,7 @@ depois que a votação acabou (propriedade de justiça). Além disso, ela decifr
 um único quadro na eleição inteira (ver `decifracao_parcial`).
 """
 
-from typing import List
+from typing import List, Optional
 
 from armazenamento import arquivos
 from crypto import elgamal, params, provas
@@ -34,14 +34,26 @@ def _arquivo(autoridade_id: str) -> str:
     return f"autoridades/{autoridade_id}.json"
 
 
-def gerar_chave(autoridade_id: str) -> dict:
-    """Gera x_i (privado) e devolve só a parte pública: h_i e a prova de Schnorr."""
+def nova_chave(autoridade_id: str):
+    """Sorteia x_i e devolve (x_i, parte pública). Quem guarda o x_i é a autoridade."""
     x_i = params.expoente_aleatorio()
     h_i = pow(params.G, x_i, params.P)
+    publica = {"id": autoridade_id, "h_i": int_para_hex(h_i),
+               "prova": provas.provar_schnorr(x_i, h_i, autoridade_id)}
+    return x_i, publica
+
+
+def salvar_chave(autoridade_id: str, x_i: int) -> None:
+    """Guarda o x_i no arquivo privado da autoridade (o "computador" dela)."""
     arquivos.salvar_privado(_arquivo(autoridade_id),
                             {"id": autoridade_id, "x_i": int_para_hex(x_i)})
-    return {"id": autoridade_id, "h_i": int_para_hex(h_i),
-            "prova": provas.provar_schnorr(x_i, h_i, autoridade_id)}
+
+
+def gerar_chave(autoridade_id: str) -> dict:
+    """Gera e guarda x_i; devolve só a parte pública: h_i e a prova de Schnorr."""
+    x_i, publica = nova_chave(autoridade_id)
+    salvar_chave(autoridade_id, x_i)
+    return publica
 
 
 def cifras_do_quadro(registros: List[dict]) -> List[List[elgamal.Cifra]]:
@@ -58,8 +70,10 @@ def produtos_do_quadro(config: dict, registros: List[dict]) -> List[elgamal.Cifr
     return elgamal.agregar(cedulas)
 
 
-def decifracao_parcial(autoridade_id: str) -> dict:
-    """Executada por UMA autoridade, usando só o próprio x_i e dados públicos."""
+def decifracao_parcial(autoridade_id: str, x_i: Optional[int] = None) -> dict:
+    """Executada por UMA autoridade, usando só o próprio x_i e dados públicos.
+
+    Se x_i não for entregue, a autoridade lê a chave do próprio arquivo."""
     config = arquivos.ler_publico("config.json")
     registros = quadro.carregar()["registros"]
     servidor_pub = arquivos.ler_publico("servidor_pub.json")["chave_publica_pem"]
@@ -70,20 +84,26 @@ def decifracao_parcial(autoridade_id: str) -> dict:
     if not quadro.encerramento_valido(config, registros, servidor_pub):
         raise ErroApuracao(f"{autoridade_id}: votação ainda não encerrada; recuso decifrar")
 
+    # A chave entregue precisa ser a desta autoridade: g^x_i tem que ser o h_i publicado.
+    if x_i is None:
+        x_i = hex_para_int(arquivos.ler_privado(_arquivo(autoridade_id))["x_i"])
+    h_i = pow(params.G, x_i, params.P)
+    h_publicado = next(hex_para_int(a["h_i"]) for a in config["autoridades"]
+                       if a["id"] == autoridade_id)
+    if h_i != h_publicado:
+        raise ErroApuracao(f"{autoridade_id}: essa chave não é a de {autoridade_id} "
+                           "(g^x não confere com o h_i publicado)")
+
     # Só apura UM quadro por eleição. O administrador tem a chave do servidor e
     # poderia forjar um quadro com a cédula de uma única pessoa: o "total" desse
     # quadro seria o voto dela. Anotando o hash do primeiro quadro apurado, um
     # segundo quadro diferente é recusado.
-    privado = arquivos.ler_privado(_arquivo(autoridade_id))
+    arquivo_apuracao = f"autoridades/{autoridade_id}_apuracao.json"
     hash_quadro = registros[-1]["hash"]
-    if "quadro_decifrado" not in privado:
-        privado["quadro_decifrado"] = hash_quadro      # primeira apuração: anota
-        arquivos.salvar_privado(_arquivo(autoridade_id), privado)
-    elif privado["quadro_decifrado"] != hash_quadro:
+    if not arquivos.existe_privado(arquivo_apuracao):
+        arquivos.salvar_privado(arquivo_apuracao, {"quadro_decifrado": hash_quadro})
+    elif arquivos.ler_privado(arquivo_apuracao)["quadro_decifrado"] != hash_quadro:
         raise ErroApuracao(f"{autoridade_id}: já apurei outro quadro; recuso apurar um segundo")
-
-    x_i = hex_para_int(privado["x_i"])
-    h_i = pow(params.G, x_i, params.P)
 
     d_lista, provas_lista = [], []
     for c1, _c2 in produtos_do_quadro(config, registros):

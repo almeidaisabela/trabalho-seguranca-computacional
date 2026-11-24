@@ -27,3 +27,17 @@ def test_verificacao_individual(eleicao_aberta):
     arquivos.salvar_publico("quadro.json", q)
     ok, _ = cliente.conferir_no_quadro("e1")
     assert not ok
+
+
+def test_eleitora_pode_entregar_a_propria_chave(eleicao_aberta):
+    from crypto import elgamal
+    from crypto.serial import hex_para_int
+    from servidor import servidor
+    priv = arquivos.ler_texto_privado("eleitores/e1.pem")
+    h = hex_para_int(arquivos.ler_publico("config.json")["h"])
+    cedula = cliente.assinar_cedula("e1", elgamal.cifrar_cedula(0, 3, h), priv)
+    recibo = cliente.enviar_cedula("e1", cedula)
+    assert cliente.conferir_no_quadro("e1", priv)[0]
+    # com a chave de outra eleitora, a conferência falha
+    assert not cliente.conferir_no_quadro("e1", arquivos.ler_texto_privado("eleitores/e2.pem"))[0]
+    assert recibo["eleitor_id"] == "e1" and servidor.estado() == "aberta"
