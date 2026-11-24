@@ -82,7 +82,6 @@ dados_privados/         chaves privadas (nunca versionar, nunca ler no auditor)
 testes/
 demo/
 relatorio/
-exemplos/               exemplos de JSON versionados
 ```
 
 ### Regra de ouro
@@ -243,7 +242,8 @@ Nunca versionados, nunca lidos pelo auditor.
 ```
 dados_privados/
 ├── autoridades/
-│   ├── A1.json          {"id": "A1", "x_i": "<hex>", "quadro_decifrado": "<hex, após a apuração>"}
+│   ├── A1.json          {"id": "A1", "x_i": "<hex>"}          (não existe em demo/interacao.py)
+│   ├── A1_apuracao.json {"quadro_decifrado": "<hex>"}         (criado na 1ª apuração)
 │   ├── A2.json
 │   └── A3.json
 ├── eleitores/
@@ -402,11 +402,16 @@ limpar_dados()
 
 ```python
 # autoridades/autoridade.py
-def gerar_chave(id_autoridade: str) -> dict            # salva x_i, devolve {id, h_i, prova}
-def decifracao_parcial(id_autoridade: str) -> dict     # lê o quadro, exige encerramento; {autoridade_id, D, provas}
+def nova_chave(id_autoridade: str) -> (x_i, dict)     # sorteia x_i; NÃO guarda; devolve x_i e {id, h_i, prova}
+def salvar_chave(id_autoridade: str, x_i: int) -> None
+def gerar_chave(id_autoridade: str) -> dict            # nova_chave + salvar_chave; devolve {id, h_i, prova}
+def decifracao_parcial(id_autoridade: str, x_i=None) -> dict
+    # x_i entregue pela autoridade (ou lido do arquivo dela); confere g^x_i = h_i;
+    # exige encerramento; apura um único quadro; devolve {autoridade_id, D, provas}
 # autoridades/apuracao.py
 def decifrar_resultado(config, produtos, parciais, num_cedulas) -> list[int]   # falha se faltar autoridade
-def apurar(participantes: list[str]) -> dict           # grava resultado.json
+def apurar(participantes: list[str]) -> dict           # decifrações com as chaves dos arquivos + publicar_resultado
+def publicar_resultado(parciais: list[dict]) -> dict   # combina as parciais e grava resultado.json
 # (a chave conjunta h = ∏ h_i é calculada em servidor.configurar)
 ```
 
@@ -414,11 +419,14 @@ def apurar(participantes: list[str]) -> dict           # grava resultado.json
 
 ```python
 # eleitor/cliente.py
-def cadastrar(id_eleitor: str) -> None
+def novo_cadastro(id_eleitor: str) -> str             # registra a pública; devolve a PRIVADA sem guardar
+def cadastrar(id_eleitor: str) -> None                 # novo_cadastro + guarda a privada no arquivo
 def montar_cedula(id_eleitor: str, escolha: int) -> dict
 def votar(id_eleitor: str, escolha: int) -> dict                # devolve o recibo
 def verificar_recibo(recibo: dict) -> bool
-def conferir_no_quadro(id_eleitor: str) -> (bool, list[str])
+def assinar_cedula(id_eleitor, cifras, priv_pem=None) -> dict   # usa a chave entregue ou a do arquivo
+def enviar_cedula(id_eleitor, cedula) -> dict                     # envia, confere e guarda o recibo
+def conferir_no_quadro(id_eleitor, priv_pem=None) -> (bool, list[str])
 ```
 
 **`servidor/`** (Integrante 4)
@@ -463,6 +471,5 @@ python main.py auditar [pasta]              auditor independente (ou: python -m 
 
 - Commits no padrão `tipo(escopo): descrição` (`feat`, `fix`, `docs`, `test`, `refactor`, `chore`).
 - Cada integrante mantém testes do próprio módulo em `testes/`.
-- Exemplos de JSON de cada arquivo da seção 3 ficam em `exemplos/` (com sufixo `.exemplo.json`).
 - Ninguém altera um formato deste contrato sem avisar o grupo.
 - Fluxo de branches: É obrigatório criar uma branch própria para cada nova funcionalidade, correção ou alteração. Não é permitido realizar commits ou enviar alterações diretamente para a branch `main`. Toda contribuição deverá ser enviada por meio de um Pull Request para revisão e posterior mesclagem na `main`.

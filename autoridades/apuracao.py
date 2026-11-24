@@ -57,13 +57,16 @@ def decifrar_resultado(config: dict, produtos: List[elgamal.Cifra],
 
 
 def apurar(participantes: List[str]) -> dict:
-    """Coordena a apuração: cada participante decifra sua parte; o resto é público."""
+    """Cada participante decifra sua parte (com a chave do próprio arquivo)."""
+    return publicar_resultado([decifracao_parcial(aid) for aid in participantes])
+
+
+def publicar_resultado(parciais: List[dict]) -> dict:
+    """Combina as decifrações parciais recebidas e publica o resultado."""
     config = arquivos.ler_publico("config.json")
     registros = quadro.carregar()["registros"]
     num_cedulas = sum(1 for r in registros if r["tipo"] == "cedula")
     produtos = produtos_do_quadro(config, registros)
-
-    parciais = [decifracao_parcial(aid) for aid in participantes]
     totais = decifrar_resultado(config, produtos, parciais, num_cedulas)
 
     resultado = {

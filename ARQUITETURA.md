@@ -58,15 +58,17 @@ Por que isso ajuda na segurança:
 
 Cada integrante é dona de uma parte do código, do teste correspondente, de
 seções do relatório e de um trecho da demonstração. O peso na nota do código
-está entre parênteses.
+está entre parênteses. A coluna "Na demo" diz qual trecho da simulação cada uma
+explica; os papéis da simulação (autoridade, eleitora) são outra coisa e estão
+no README.
 
 | Integrante | Parte | Arquivos | Testes | Critério do código | Seções do relatório | Na demo |
 |---|---|---|---|---|---|---|
-| **1** | Camada 1: Criptografia | `crypto/params.py`, `serial.py`, `elgamal.py`, `provas.py`, `assinatura.py` | `test_crypto.py` | Cifragem e apuração homomórfica (1,0) | Esquema de cifragem; parâmetros e algoritmos | explica a cifra e a multiplicação das cédulas |
-| **2** | Autoridades | `autoridades/autoridade.py`, `apuracao.py` | `test_autoridades.py` | Chave conjunta e decifração (0,75) | Chave conjunta e decifração; perguntas (ii) e (iii) | `config` e apuração **sem A3** (falha) |
-| **3** | Eleitor + CLI | `eleitor/cliente.py`, `main.py` | `test_eleitor.py` | Assinaturas e recibo (0,5) | Autenticação; verificação individual; pergunta (iv) | cadastro, votos, `verificar` |
-| **4** | Servidor + Quadro + Persistência | `servidor/servidor.py`, `servidor/quadro.py`, `armazenamento/arquivos.py` | `test_servidor.py` | Quadro encadeado (0,75) + elegibilidade e unicidade | Arquitetura; integridade do quadro | voto duplo e intruso (rejeitados) |
-| **5** | Auditor + Demonstração | `auditor/`, `demo/` | `test_auditor.py` | Auditor independente (0,5) | Auditoria; modelo de ameaças; pergunta (i) | adulteração do quadro e detecção |
+| **1** | Camada 1: Criptografia | `crypto/params.py`, `serial.py`, `elgamal.py`, `provas.py`, `assinatura.py` | `test_crypto.py` | Cifragem e apuração homomórfica (1,0) | Esquema de cifragem; parâmetros e algoritmos | opção 1 (primo) e as cifras do voto (opção 5) |
+| **2** | Autoridades | `autoridades/autoridade.py`, `apuracao.py` | `test_autoridades.py` | Chave conjunta e decifração (0,75) | Chave conjunta e decifração; perguntas (ii) e (iii) | opção 2 (chave conjunta) e opção 8 (apuração, inclusive sem a Natalie) |
+| **3** | Eleitor + CLI | `eleitor/cliente.py`, `main.py` | `test_eleitor.py` | Assinaturas e recibo (0,5) | Autenticação; verificação individual; pergunta (iv) | opção 3 (cadastro), assinatura e recibo da opção 5, opção 6 (verificação) |
+| **4** | Servidor + Quadro + Persistência | `servidor/servidor.py`, `servidor/quadro.py`, `armazenamento/arquivos.py` | `test_servidor.py` | Quadro encadeado (0,75) + elegibilidade e unicidade | Arquitetura; integridade do quadro | regras do servidor, quadro (opção 10), voto duplo, opção 11 e encerramento |
+| **5** | Auditor + Demonstração | `auditor/`, `demo/` | `test_auditor.py` | Auditor independente (0,5) | Auditoria; modelo de ameaças; pergunta (i) | opção 9 (auditoria) e o ataque do administrador (opção 12) |
 
 Seções compartilhadas do relatório (cada uma escreve um pedaço): análise de
 segurança e dificuldades/aprendizados.
@@ -243,7 +245,7 @@ a coação nesse cenário.
 - Quem votou (não em quem) é público, porque o quadro mostra os `eleitor_id`.
 - Quadro falso apresentado às autoridades: mitigado (cada autoridade apura um
   único quadro), mas se o ataque vier antes da apuração verdadeira, ele revela
-  um voto uma única vez. Ver `relatorio/MODELO_DE_AMEACAS.md`, seção 3.
+  um voto uma única vez.
 - Se todos votarem no mesmo candidato, o resultado revela o voto de todos. Isso
   vale para qualquer eleição.
 
