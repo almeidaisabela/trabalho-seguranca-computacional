@@ -31,6 +31,7 @@ def cmd_resetar(_args):
 
 
 def cmd_config(args):
+    servidor.garantir_sem_eleicao()   # antes de gerar chaves: não sobrescrever eleição existente
     ids = [f"A{i}" for i in range(1, args.autoridades + 1)]
     print(f"Cada autoridade gera sua chave privada x_i em segredo: {', '.join(ids)}")
     publicas = [autoridade.gerar_chave(aid) for aid in ids]   # só h_i e prova saem daqui

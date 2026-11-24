@@ -1,6 +1,7 @@
 """Testes do servidor e do quadro público (Integrante 4)."""
 import pytest
 
+import main
 from armazenamento import arquivos
 from eleitor import cliente
 from servidor import quadro, servidor
@@ -56,3 +57,9 @@ def test_cadeia_detecta_alteracao_remocao_e_reordenacao(eleicao_encerrada):
     assert quadro.verificar_cadeia(config, original[1:])                          # remoção
     assert quadro.verificar_cadeia(config, [original[1], original[0]] + original[2:])  # reordenação
 
+def test_config_repetido_nao_sobrescreve_chaves(eleicao_aberta):
+    antes = arquivos.ler_privado("autoridades/A1.json")["x_i"]
+    codigo = main.main(["config", "--candidatos", "A", "B"])
+    depois = arquivos.ler_privado("autoridades/A1.json")["x_i"]
+    assert codigo == 1
+    assert depois == antes
